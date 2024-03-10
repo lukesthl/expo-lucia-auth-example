@@ -1,0 +1,38 @@
+{
+  "name": "expo-lucia-auth-example",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "native": "bun run --cwd apps/expo dev:client",
+    "api": "wrangler dev ./apps/api/src/index.ts",
+    "watch": "yarn workspaces foreach -pi run watch",
+    "fix": "manypkg fix",
+    "upgrade:tamagui": "yarn up '*tamagui*'@latest '@tamagui/*'@latest react-native-web-lite@latest",
+    "upgrade:tamagui:canary": "yarn up '*tamagui*'@canary '@tamagui/*'@canary react-native-web-lite@canary",
+    "check-deps": "check-dependency-version-consistency .",
+    "lint": "turbo lint",
+    "format": "turbo format",
+    "build": "turbo build"
+  },
+  "resolutions": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-refresh": "^0.14.0",
+    "react-native-svg": "14.1.0",
+    "react-native-web": "~0.19.10"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.24.0",
+    "@manypkg/cli": "^0.21.2",
+    "ajv": "^8.12.0",
+    "check-dependency-version-consistency": "^4.1.0",
+    "eslint": "^8.57.0",
+    "node-gyp": "^10.0.1",
+    "prettier": "^3.2.5",
+    "turbo": "^1.12.4",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "api",
+  "scripts": {
+    "lint": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,cjs,mjs,ts,tsx,md,json}\"",
+    "dev": "wrangler dev src/index.ts",
+    "deploy": "wrangler deploy --minify src/index.ts",
+    "db:generate": "drizzle-kit generate:sqlite",
+    "db:migrate": "wrangler d1 migrations apply demo --local",
+    "db:migrate:prod": "wrangler d1 migrations apply demo",
+    "db:studio": "drizzle-kit studio",
+    "db:studio:local": "cross-env LOCAL_DB_PATH=$(find .wrangler/state/v3/d1/miniflare-D1DatabaseObject -type f -name '*.sqlite' -print -quit) drizzle-kit studio"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.1.11",
+    "@lucia-auth/adapter-drizzle": "1.0.0",
+    "arctic": "^1.2.1",
+    "better-sqlite3": "^9.4.3",
+    "cross-env": "^7.0.3",
+    "drizzle-orm": "^0.29.4",
+    "hono": "^4.0.9",
+    "lucia": "^3.0.1",
+    "oslo": "^1.1.3",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240222.0",
+    "drizzle-kit": "^0.20.14",
+    "wrangler": "^3.30.1",
+    "@acme/eslint-config": "workspace:*",
+    "@acme/prettier-config": "workspace:*",
+    "@acme/tsconfig": "workspace:*"
+  },
+  "eslintConfig": {
+    "root": true,
+    "extends": [
+      "@acme/eslint-config/base",
+      "@acme/eslint-config/react"
+    ]
+  },
+  "prettier": "@acme/prettier-config"
+}
