@@ -14,6 +14,7 @@
   "dependencies": {
     "@hono/zod-validator": "^0.1.11",
     "@lucia-auth/adapter-drizzle": "1.0.0",
+    "@tsndr/cloudflare-worker-jwt": "^2.5.3",
     "arctic": "^1.2.1",
     "better-sqlite3": "^9.4.3",
     "cross-env": "^7.0.3",

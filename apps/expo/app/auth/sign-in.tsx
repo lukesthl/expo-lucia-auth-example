@@ -1,10 +1,10 @@
-import { router, Stack } from "expo-router";
-import { Button } from "tamagui";
+import { Stack } from "expo-router";
 
-import { useAuth } from "../AuthProvider";
+import { AppleSignIn } from "../../lib/auth/apple";
+import { GithubSignIn } from "../../lib/auth/github";
+import { GoogleSignIn } from "../../lib/auth/google";
 
 export default function SignIn() {
-  const { signIn } = useAuth();
   return (
     <>
       <Stack.Screen
@@ -12,7 +12,9 @@ export default function SignIn() {
           title: "SignIn",
         }}
       />
-      <Button onPress={() => void signIn().then(() => router.replace("/(app)"))}>Sign in</Button>
+      <GithubSignIn />
+      <GoogleSignIn />
+      <AppleSignIn />
     </>
   );
 }

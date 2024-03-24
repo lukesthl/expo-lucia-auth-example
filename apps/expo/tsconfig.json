@@ -1,7 +1,14 @@
 {
-  "extends": ["expo/tsconfig.base", "@acme/tsconfig/base"],
+  "extends": [
+    "expo/tsconfig.base",
+    "@acme/tsconfig/base"
+  ],
   "compilerOptions": {
     "strict": true
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "./index.js"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "./index.js"
+  ]
 }

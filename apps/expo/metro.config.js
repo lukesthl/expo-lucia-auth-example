@@ -9,7 +9,16 @@ const projectRoot = __dirname;
 const workspaceRoot = path.resolve(__dirname, "../..");
 
 const config = getDefaultConfig(projectRoot, { isCSSEnabled: true });
-
+// for hono/client to work because unstable_enablePackageExports is not working
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === "hono/client") {
+    return {
+      type: "sourceFile",
+      filePath: path.resolve(workspaceRoot, "node_modules/hono/dist/client/index.js"),
+    };
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
 config.watchFolders = [workspaceRoot];
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),

@@ -1,23 +1,29 @@
 import type { ReactNode } from "react";
-import React, { createContext, useContext, useEffect, useState } from "react";
-import * as Linking from "expo-linking";
+import { createContext, useContext, useEffect, useState } from "react";
 import * as Browser from "expo-web-browser";
+import type { InferRequestType, InferResponseType } from "hono/client";
 
+import { Api } from "../lib/api.client";
 import Storage from "./storage";
 
+type User = NonNullable<InferResponseType<(typeof Api.client)["user"]["$get"]>>;
+
+type Provider = NonNullable<
+  InferRequestType<(typeof Api.client)["auth"]["login"][":provider"]["$post"]>
+>["param"]["provider"];
 interface AuthContextType {
   user: User | null;
-  signIn: () => Promise<User | null>;
   signOut: () => Promise<void>;
+  signInWithIdToken: (args: {
+    idToken: string;
+    provider: Provider;
+    user?: {
+      username: string;
+    };
+  }) => Promise<User | null>;
+  getOAuthAccounts: () => Promise<InferResponseType<(typeof Api.client)["user"]["oauth-accounts"]["$get"]>["accounts"]>;
   loading: boolean;
 }
-
-interface User {
-  userId: string;
-  username: string;
-}
-
-const API_URL = "http://localhost:8787";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -30,65 +36,79 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
 
-  const signIn = async (): Promise<User | null> => {
-    const result = await Browser.openAuthSessionAsync(`${API_URL}/auth/login/oauth/github`);
-    if (result.type !== "success") {
+  const signInWithIdToken = async ({
+    idToken,
+    provider,
+    user: createUser,
+  }: {
+    idToken: string;
+    provider: Provider;
+    user?: {
+      username: string;
+    };
+  }): Promise<User | null> => {
+    const response = await Api.client.auth.login[":provider"].$post({
+      param: { provider },
+      json: { idToken, user: createUser },
+    });
+    if (!response.ok) {
       return null;
     }
-    const url = Linking.parse(result.url);
-    const sessionToken = url.queryParams?.token?.toString() ?? null;
+    const sessionToken = ((await response.json()) as { token: string }).token;
     if (!sessionToken) {
       return null;
     }
-    const user = await getUser(sessionToken);
+    Api.addSessionToken(sessionToken);
+    const user = await getUser();
     setUser(user);
     await Storage.setItem("session_token", sessionToken);
     return user;
   };
 
-  const getUser = async (sessionToken: string): Promise<User | null> => {
-    const response = await fetch(`${API_URL}/user/me`, {
-      headers: {
-        Authorization: `Bearer ${sessionToken}`,
-      },
-    });
+  const getUser = async (): Promise<User | null> => {
+    const response = await Api.client.user.$get();
     if (!response.ok) {
       return null;
     }
-
-    const user = (await response.json()) as User;
+    const user = await response.json();
     return user;
   };
 
   const signOut = async () => {
-    const sessionToken = await Storage.getItem("session_token");
-    const response = await fetch(`${API_URL}/auth/logout`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${sessionToken}`,
-      },
-    });
+    const response = await Api.client.auth.logout.$post();
     if (!response.ok) {
       return;
     }
     await Storage.deleteItem("session_token");
   };
 
+  const getOAuthAccounts = async () => {
+    const response = await Api.client.user["oauth-accounts"].$get();
+    if (!response.ok) {
+      return [];
+    }
+    return (await response.json()).accounts;
+  };
+
   useEffect(() => {
-    const initAuth = async () => {
+    const init = async () => {
       setLoading(true);
       const sessionToken = await Storage.getItem("session_token");
       if (sessionToken) {
-        const user = await getUser(sessionToken);
+        Api.addSessionToken(sessionToken);
+        const user = await getUser();
         setUser(user);
       }
-
       setLoading(false);
     };
-    void initAuth();
+    void init();
   }, []);
 
-  return <AuthContext.Provider value={{ user, signIn, signOut, loading }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, signOut, loading, signInWithIdToken, getOAuthAccounts }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextType => {

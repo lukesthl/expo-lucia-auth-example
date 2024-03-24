@@ -1,4 +1,5 @@
 import { DrizzleSQLiteAdapter } from "@lucia-auth/adapter-drizzle";
+import { InferInsertModel, InferModelFromColumns } from "drizzle-orm";
 import type { Context } from "hono";
 import { Lucia } from "lucia";
 
@@ -21,9 +22,11 @@ export const initializeLucia = (c: Context<AppContext>) => {
     },
     getUserAttributes: (attributes) => {
       return {
+        id: attributes.id,
         username: attributes.username,
-        name: attributes.name,
-        githubId: attributes.githubId,
+        email: attributes.email,
+        emailVerified: attributes.emailVerified,
+        profilePictureUrl: attributes.profilePictureUrl,
       };
     },
   });
@@ -31,8 +34,4 @@ export const initializeLucia = (c: Context<AppContext>) => {
   return lucia;
 };
 
-export interface DatabaseUserAttributes {
-  name: string;
-  username: string;
-  githubId: string;
-}
+export type DatabaseUserAttributes = InferInsertModel<typeof userTable>;
