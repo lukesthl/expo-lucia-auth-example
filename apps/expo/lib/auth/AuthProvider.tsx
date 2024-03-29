@@ -1,16 +1,19 @@
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect, useState } from "react";
+import { makeRedirectUri } from "expo-auth-session";
+import * as Linking from "expo-linking";
 import * as Browser from "expo-web-browser";
 import type { InferRequestType, InferResponseType } from "hono/client";
 
-import { Api } from "../lib/api.client";
-import Storage from "./storage";
+import { Api } from "../api.client";
+import Storage from "../storage";
 
 type User = NonNullable<InferResponseType<(typeof Api.client)["user"]["$get"]>>;
 
 type Provider = NonNullable<
   InferRequestType<(typeof Api.client)["auth"]["login"][":provider"]["$post"]>
 >["param"]["provider"];
+
 interface AuthContextType {
   user: User | null;
   signOut: () => Promise<void>;
@@ -22,6 +25,7 @@ interface AuthContextType {
     };
   }) => Promise<User | null>;
   getOAuthAccounts: () => Promise<InferResponseType<(typeof Api.client)["user"]["oauth-accounts"]["$get"]>["accounts"]>;
+  signInWithOAuth: (args: { provider: Provider; redirect?: string }) => Promise<User | null>;
   loading: boolean;
 }
 
@@ -35,6 +39,32 @@ Browser.maybeCompleteAuthSession();
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+
+  const signInWithOAuth = async ({
+    provider,
+    redirect = makeRedirectUri(),
+  }: {
+    provider: Provider;
+    redirect?: string;
+  }) => {
+    const result = await Browser.openAuthSessionAsync(
+      `${process.env.EXPO_PUBLIC_API_URL!}/auth/${provider}?redirect=${redirect}`,
+      redirect
+    );
+    if (result.type !== "success") {
+      return null;
+    }
+    const url = Linking.parse(result.url);
+    const sessionToken = url.queryParams?.token?.toString() ?? null;
+    if (!sessionToken) {
+      return null;
+    }
+    Api.addSessionToken(sessionToken);
+    const user = await getUser();
+    setUser(user);
+    await Storage.setItem("session_token", sessionToken);
+    return user;
+  };
 
   const signInWithIdToken = async ({
     idToken,
@@ -105,7 +135,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, signOut, loading, signInWithIdToken, getOAuthAccounts }}>
+    <AuthContext.Provider value={{ user, signOut, loading, signInWithIdToken, getOAuthAccounts, signInWithOAuth }}>
       {children}
     </AuthContext.Provider>
   );

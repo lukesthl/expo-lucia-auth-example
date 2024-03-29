@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { View, YStack } from "tamagui";
 
 import { AppleSignIn } from "../../lib/auth/apple";
 import { GithubSignIn } from "../../lib/auth/github";
@@ -9,12 +10,16 @@ export default function SignIn() {
     <>
       <Stack.Screen
         options={{
-          title: "SignIn",
+          title: "Sign In",
         }}
       />
-      <GithubSignIn />
-      <GoogleSignIn />
-      <AppleSignIn />
+      <View alignItems="center" flex={1} margin={8}>
+        <YStack gap={12} flex={1} width={"100%"} maxWidth={500}>
+          <GithubSignIn />
+          <GoogleSignIn />
+          <AppleSignIn />
+        </YStack>
+      </View>
     </>
   );
 }

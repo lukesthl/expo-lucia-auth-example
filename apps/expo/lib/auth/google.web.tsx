@@ -1,47 +1,30 @@
-import { useState } from "react";
-import { generateHexStringAsync } from "expo-auth-session";
+import { Platform } from "react-native";
+import { SvgUri } from "react-native-svg";
 import { router } from "expo-router";
-import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
-import { Button } from "tamagui";
+import { Button, Image } from "tamagui";
 
-import { useAuth } from "../../app/AuthProvider";
+import { useAuth } from "./AuthProvider";
 
 export const GoogleSignIn = () => {
-  return (
-    <GoogleOAuthProvider clientId={process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID!}>
-      <GoogleSignInButton />
-    </GoogleOAuthProvider>
-  );
-};
-
-const GoogleSignInButton = () => {
-  const [state, setState] = useState("");
-  const { signInWithIdToken } = useAuth();
-
-  const login = useGoogleLogin({
-    state,
-    onSuccess: (codeResponse) => {
-      console.log(window.location.href);
-      console.log(codeResponse);
-      void signInWithIdToken({
-        idToken: codeResponse.code,
-        provider: "google",
-      }).then(() => {
-        void router.replace("/(app)");
-      });
-    },
-    flow: "auth-code",
-    redirect_uri: process.env.EXPO_PUBLIC_API_URL,
-  });
+  const { signInWithOAuth } = useAuth();
   return (
     <Button
-      onPress={async () => {
-        const state = await generateHexStringAsync(16);
-        setState(state);
-        login();
+      onPress={() => {
+        void signInWithOAuth({ provider: "google" }).then((user) => {
+          if (user) {
+            void router.replace("/(app)");
+          }
+        });
       }}
+      icon={
+        Platform.OS === "web" ? (
+          <Image src={"https://www.cdnlogo.com/logos/g/35/google-icon.svg"} width={20} height={20} />
+        ) : (
+          <SvgUri uri={"https://www.cdnlogo.com/logos/g/35/google-icon.svg"} width={20} height={20} />
+        )
+      }
     >
-      Login with google
+      Continue with Google
     </Button>
   );
 };

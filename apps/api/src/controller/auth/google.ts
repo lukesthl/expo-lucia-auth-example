@@ -1,3 +1,4 @@
+import { Google } from "arctic";
 import type { Context } from "hono";
 import { generateId } from "lucia";
 
@@ -5,21 +6,43 @@ import type { AppContext } from "../../context";
 import { oauthAccountTable } from "../../database/oauth.accounts";
 import { userTable } from "../../database/users";
 
-export const createGoogleSession = async ({ c, idToken }: { c: Context<AppContext>; idToken: string }) => {
-  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    body: JSON.stringify({
-      code: idToken,
-      client_id: c.env.GOOGLE_CLIENT_ID,
-      client_secret: c.env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: "http://localhost:8081",
-      grant_type: "authorization_code",
-    }),
-  });
-  const tokens = (await tokenResponse.json()) as { access_token: string };
+export const getGoogleAuthorizationUrl = async ({
+  c,
+  state,
+  codeVerifier,
+}: {
+  c: Context<AppContext>;
+  state: string;
+  codeVerifier: string;
+}) => {
+  const google = new Google(
+    c.env.GOOGLE_CLIENT_ID,
+    c.env.GOOGLE_CLIENT_SECRET,
+    `${c.env.API_DOMAIN}/auth/google/callback`
+  );
+  const url = await google.createAuthorizationURL(state, codeVerifier, { scopes: ["profile", "email"] });
+  return url.toString();
+};
+
+export const createGoogleSession = async ({
+  c,
+  idToken,
+  codeVerifier,
+}: {
+  c: Context<AppContext>;
+  idToken: string;
+  codeVerifier: string;
+}) => {
+  const google = new Google(
+    c.env.GOOGLE_CLIENT_ID,
+    c.env.GOOGLE_CLIENT_SECRET,
+    `${c.env.API_DOMAIN}/auth/google/callback`
+  );
+
+  const tokens = await google.validateAuthorizationCode(idToken, codeVerifier);
   const response = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
     headers: {
-      Authorization: `Bearer ${tokens.access_token}`,
+      Authorization: `Bearer ${tokens.accessToken}`,
     },
   });
   const user = (await response.json()) as {

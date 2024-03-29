@@ -1,4 +1,6 @@
 import jwt from "@tsndr/cloudflare-worker-jwt";
+import { Apple } from "arctic";
+import type { AppleCredentials } from "arctic";
 import type { Context } from "hono";
 import { generateId } from "lucia";
 
@@ -6,17 +8,50 @@ import type { AppContext } from "../../context";
 import { oauthAccountTable } from "../../database/oauth.accounts";
 import { userTable } from "../../database/users";
 
+export const getAppleAuthorizationUrl = async ({ c, state }: { c: Context<AppContext>; state: string }) => {
+  const credentials: AppleCredentials = {
+    clientId: c.env.APPLE_WEB_CLIENT_ID,
+    teamId: c.env.APPLE_TEAM_ID,
+    keyId: c.env.APPLE_KEY_ID,
+    certificate: c.env.APPLE_PRIVATE_KEY,
+  };
+
+  const apple = new Apple(credentials, `${c.env.API_DOMAIN}/auth/apple/callback`);
+  const url = await apple.createAuthorizationURL(state, {
+    scopes: ["name", "email"],
+  });
+  url.searchParams.set("response_mode", "form_post");
+  return url;
+};
+
 export const createAppleSession = async ({
   c,
   idToken,
+  code,
   user,
 }: {
   c: Context<AppContext>;
-  idToken: string;
+  code?: string;
+  idToken?: string;
   user?: {
     username: string;
   };
 }) => {
+  if (!idToken) {
+    const credentials: AppleCredentials = {
+      clientId: c.env.APPLE_WEB_CLIENT_ID,
+      teamId: c.env.APPLE_TEAM_ID,
+      keyId: c.env.APPLE_KEY_ID,
+      certificate: c.env.APPLE_PRIVATE_KEY,
+    };
+
+    const apple = new Apple(credentials, `${c.env.API_DOMAIN}/auth/apple/callback`);
+    if (!code) {
+      return null;
+    }
+    const tokens = await apple.validateAuthorizationCode(code);
+    idToken = tokens.idToken;
+  }
   const { payload, header } = jwt.decode<
     {
       email: string;
@@ -38,7 +73,7 @@ export const createAppleSession = async ({
     !isValid ||
     !payload ||
     payload.iss !== "https://appleid.apple.com" ||
-    payload?.aud !== c.env.APPLE_CLIENT_ID ||
+    !(payload?.aud === c.env.APPLE_CLIENT_ID || payload.aud === c.env.APPLE_WEB_CLIENT_ID) ||
     !payload.exp ||
     payload?.exp < Date.now() / 1000
   ) {

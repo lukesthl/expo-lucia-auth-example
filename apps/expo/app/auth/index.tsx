@@ -1,14 +1,5 @@
-import { Stack } from "expo-router";
+import { Redirect } from "expo-router";
 
 export default function Auth() {
-  return (
-    <>
-      <Stack.Screen
-        options={{
-          title: "Auth",
-        }}
-      />
-      Auth
-    </>
-  );
+  return <Redirect href={"/auth/sign-in)"} />;
 }

@@ -9,5 +9,8 @@ export type Env = {
   APPLE_CLIENT_ID: string;
   APPLE_PRIVATE_KEY: string;
   APPLE_TEAM_ID: string;
+  APPLE_WEB_CLIENT_ID: string;
   APPLE_KEY_ID: string;
+  API_DOMAIN: string;
+  WEB_DOMAIN: string;
 };

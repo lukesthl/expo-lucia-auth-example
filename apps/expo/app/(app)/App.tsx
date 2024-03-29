@@ -1,43 +1,79 @@
 import { useEffect, useState } from "react";
+import { useColorScheme } from "react-native";
 import { router } from "expo-router";
 import type { InferResponseType } from "hono";
-import { Button, Text, View } from "tamagui";
+import { Button, H3, H4, Image, Text, View, XStack, YStack } from "tamagui";
 
 import type { Api } from "../../lib/api.client";
-import { useAuth } from "../AuthProvider";
+import { useAuth } from "../../lib/auth/AuthProvider";
 
 export function App() {
+  const scheme = useColorScheme();
   const { user, signOut, getOAuthAccounts } = useAuth();
   const [accounts, setAccounts] = useState<
     InferResponseType<(typeof Api.client)["user"]["oauth-accounts"]["$get"]>["accounts"]
   >([]);
   useEffect(() => {
     void getOAuthAccounts().then((response) => setAccounts(response));
-  }, []);
+  }, [getOAuthAccounts]);
   return (
-    <View>
-      <Button
-        onPress={() => {
-          void signOut().then(() => router.replace("/auth/sign-in"));
-        }}
+    <View alignItems="center" flex={1} margin={"$3"}>
+      <YStack
+        gap={"$3"}
+        flex={1}
+        width={"100%"}
+        maxWidth={500}
+        backgroundColor={scheme === "light" ? "white" : undefined}
+        padding={"$4"}
+        borderRadius={"$3"}
       >
-        Sign out
-      </Button>
-      {user && (
-        <View>
-          <Text>{user.username}</Text>
-          <Text>{user.id}</Text>
-          <Text>{user.email}</Text>
-          <Text>E-Mail verified: {user.emailVerified}</Text>
-          <Text>{user.profilePictureUrl}</Text>
-        </View>
-      )}
-      <Text>OAuth accounts</Text>
-      {accounts.map((account) => (
-        <View key={account.provider}>
-          <Text>{account.provider}</Text>
-        </View>
-      ))}
+        {user && (
+          <View>
+            <H3 marginBottom={"$3"}>User Information</H3>
+            <XStack gap={"$4"} alignItems="center" marginBottom={"$3"}>
+              {user.profilePictureUrl ? (
+                <Image src={user.profilePictureUrl} width={"$8"} height={"$8"} borderRadius={999} />
+              ) : (
+                <View width={"$8"} height={"$8"} backgroundColor={"$gray11"} borderRadius={999} />
+              )}
+              <View>
+                <H4>{user.username}</H4>
+                <Text>{user.email}</Text>
+              </View>
+            </XStack>
+            <YStack gap={6}>
+              <Text color="$gray11">User ID: {user.id}</Text>
+              <Text color="$gray11">E-Mail Verified: {user.emailVerified ? "yes" : "no"}</Text>
+            </YStack>
+          </View>
+        )}
+        <H3>OAuth</H3>
+        {["Google", "Apple", "Github"].map((provider) => (
+          <XStack
+            key={provider}
+            alignItems="center"
+            justifyContent="space-between"
+            backgroundColor={"$gray3"}
+            borderRadius={"$4"}
+            padding={"$3"}
+          >
+            <Text>{provider}</Text>
+            {accounts.some((account) => account.provider === provider.toLowerCase()) ? (
+              <Text color="$green10">Connected</Text>
+            ) : (
+              <Text color="$red10">Not connected</Text>
+            )}
+          </XStack>
+        ))}
+        <Button
+          onPress={() => {
+            void signOut().then(() => router.replace("/auth/sign-in"));
+          }}
+          backgroundColor={scheme === "light" ? "$gray4" : undefined}
+        >
+          Sign out
+        </Button>
+      </YStack>
     </View>
   );
 }

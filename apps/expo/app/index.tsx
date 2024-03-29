@@ -1,16 +1,5 @@
-import { router, Stack } from "expo-router";
-import { Button } from "tamagui";
+import { Redirect } from "expo-router";
 
 export default function Screen() {
-  return (
-    <>
-      <Stack.Screen
-        options={{
-          title: "Home",
-        }}
-      />
-      <Button onPress={() => router.push("/(app)")}>Home</Button>
-      {/* <App /> */}
-    </>
-  );
+  return <Redirect href={"/(app)"} />;
 }

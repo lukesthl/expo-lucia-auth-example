@@ -1,9 +1,11 @@
 import React from "react";
+import { Platform } from "react-native";
+import { SvgUri } from "react-native-svg";
 import { router } from "expo-router";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import { Button } from "tamagui";
+import { Button, Image } from "tamagui";
 
-import { useAuth } from "../../app/AuthProvider";
+import { useAuth } from "./AuthProvider";
 
 GoogleSignin.configure({
   iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!,
@@ -12,14 +14,11 @@ GoogleSignin.configure({
 });
 
 export const GoogleSignIn = () => {
-  const [loading, setLoading] = React.useState(false);
   const { signInWithIdToken } = useAuth();
 
   return (
     <Button
-      disabled={loading}
       onPress={async () => {
-        setLoading(true);
         try {
           await GoogleSignin.hasPlayServices();
           const userInfo = await GoogleSignin.signIn();
@@ -35,10 +34,16 @@ export const GoogleSignIn = () => {
         } catch (error) {
           console.log(error);
         }
-        setLoading(false);
       }}
+      icon={
+        Platform.OS === "web" ? (
+          <Image src={"https://www.cdnlogo.com/logos/g/35/google-icon.svg"} width={20} height={20} />
+        ) : (
+          <SvgUri uri={"https://www.cdnlogo.com/logos/g/35/google-icon.svg"} width={20} height={20} />
+        )
+      }
     >
-      Login with google
+      Continue with Google
     </Button>
   );
 };

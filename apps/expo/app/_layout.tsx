@@ -6,8 +6,8 @@ import { TamaguiProvider } from "tamagui";
 
 import "../tamagui-web.css";
 
+import { AuthProvider } from "../lib/auth/AuthProvider";
 import config from "../tamagui.config";
-import { AuthProvider } from "./AuthProvider";
 
 export default function HomeLayout() {
   const [loaded] = useFonts({
@@ -17,7 +17,6 @@ export default function HomeLayout() {
     InterBold: require("@tamagui/font-inter/otf/Inter-Bold.otf"),
   });
   const scheme = useColorScheme();
-
   if (!loaded) {
     return null;
   }

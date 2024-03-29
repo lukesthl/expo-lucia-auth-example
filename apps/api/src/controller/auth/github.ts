@@ -6,6 +6,11 @@ import type { AppContext } from "../../context";
 import { oauthAccountTable } from "../../database/oauth.accounts";
 import { userTable } from "../../database/users";
 
+export const getGithubAuthorizationUrl = async ({ c, state }: { c: Context<AppContext>; state: string }) => {
+  const github = new GitHub(c.env.GITHUB_CLIENT_ID, c.env.GITHUB_CLIENT_SECRET);
+  return await github.createAuthorizationURL(state);
+};
+
 export const createGithubSession = async ({ c, idToken }: { c: Context<AppContext>; idToken: string }) => {
   const github = new GitHub(c.env.GITHUB_CLIENT_ID, c.env.GITHUB_CLIENT_SECRET);
   const tokens = await github.validateAuthorizationCode(idToken);

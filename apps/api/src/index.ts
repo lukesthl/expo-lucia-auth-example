@@ -11,24 +11,20 @@ import { initalizeDB } from "./database/db";
 
 const app = new Hono<AppContext>();
 
-app.use(logger());
-app.use(cors({ origin: "http://localhost:8081" }));
+app
+  .use(logger())
+  .use((c, next) => {
+    const handler = cors({ origin: c.env.WEB_DOMAIN });
+    return handler(c, next);
+  })
+  .use((c, next) => {
+    initalizeDB(c);
+    initializeLucia(c);
+    return next();
+  })
+  .use(AuthMiddleware);
 
-app.use((c, next) => {
-  initalizeDB(c);
-  initializeLucia(c);
-  return next();
-});
-
-app.use(AuthMiddleware);
-
-const routes = app
-  .route("/auth", AuthController)
-  .route("/user", UserController)
-  .get("/hello", (c) => {
-    const user = c.get("user");
-    return c.json({ message: "Hello, World! " + user?.username });
-  });
+const routes = app.route("/auth", AuthController).route("/user", UserController);
 
 export type AppType = typeof routes;
 export default app;

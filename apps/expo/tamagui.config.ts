@@ -81,7 +81,23 @@ export const config = createTamagui({
   settings: {
     allowedStyleValues: "somewhat-strict",
   },
-  themes,
+  themes: {
+    ...themes,
+    light_Button: {
+      background: "#fff",
+      backgroundFocus: "#424242",
+      backgroundHover: "#a5a5a5",
+      backgroundPress: "#a5a5a5",
+      backgroundStrong: "#191919",
+      backgroundTransparent: "#151515",
+      color: "#000",
+      colorFocus: "#a5a5a5",
+      colorHover: "#a5a5a5",
+      colorPress: "#fff",
+      colorTransparent: "#a5a5a5",
+      placeholderColor: "#424242",
+    },
+  },
   tokens,
   media: createMedia({
     xs: { maxWidth: 660 },
