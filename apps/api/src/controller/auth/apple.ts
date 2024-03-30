@@ -1,22 +1,26 @@
 import jwt from "@tsndr/cloudflare-worker-jwt";
 import { Apple } from "arctic";
-import type { AppleCredentials } from "arctic";
 import type { Context } from "hono";
 import { generateId } from "lucia";
 
+import type { DatabaseUserAttributes } from "../../auth/lucia-auth";
 import type { AppContext } from "../../context";
 import { oauthAccountTable } from "../../database/oauth.accounts";
 import { userTable } from "../../database/users";
 
-export const getAppleAuthorizationUrl = async ({ c, state }: { c: Context<AppContext>; state: string }) => {
-  const credentials: AppleCredentials = {
-    clientId: c.env.APPLE_WEB_CLIENT_ID,
-    teamId: c.env.APPLE_TEAM_ID,
-    keyId: c.env.APPLE_KEY_ID,
-    certificate: c.env.APPLE_PRIVATE_KEY,
-  };
+const appleClient = (c: Context<AppContext>) =>
+  new Apple(
+    {
+      clientId: c.env.APPLE_WEB_CLIENT_ID,
+      teamId: c.env.APPLE_TEAM_ID,
+      keyId: c.env.APPLE_KEY_ID,
+      certificate: c.env.APPLE_PRIVATE_KEY,
+    },
+    `${c.env.API_DOMAIN}/auth/apple/callback`
+  );
 
-  const apple = new Apple(credentials, `${c.env.API_DOMAIN}/auth/apple/callback`);
+export const getAppleAuthorizationUrl = async ({ c, state }: { c: Context<AppContext>; state: string }) => {
+  const apple = appleClient(c);
   const url = await apple.createAuthorizationURL(state, {
     scopes: ["name", "email"],
   });
@@ -29,23 +33,18 @@ export const createAppleSession = async ({
   idToken,
   code,
   user,
+  sessionToken,
 }: {
   c: Context<AppContext>;
   code?: string;
   idToken?: string;
+  sessionToken?: string;
   user?: {
     username: string;
   };
 }) => {
   if (!idToken) {
-    const credentials: AppleCredentials = {
-      clientId: c.env.APPLE_WEB_CLIENT_ID,
-      teamId: c.env.APPLE_TEAM_ID,
-      keyId: c.env.APPLE_KEY_ID,
-      certificate: c.env.APPLE_PRIVATE_KEY,
-    };
-
-    const apple = new Apple(credentials, `${c.env.API_DOMAIN}/auth/apple/callback`);
+    const apple = appleClient(c);
     if (!code) {
       return null;
     }
@@ -82,9 +81,20 @@ export const createAppleSession = async ({
   const existingAccount = await c.get("db").query.oauthAccounts.findFirst({
     where: (account, { eq }) => eq(account.providerUserId, payload.sub.toString()),
   });
-  const existingUser = await c.get("db").query.users.findFirst({
-    where: (u, { eq }) => eq(u.email, payload.email),
-  });
+  let existingUser: DatabaseUserAttributes | null = null;
+  if (sessionToken) {
+    const sessionUser = await c.get("lucia").validateSession(sessionToken);
+    if (sessionUser.user) {
+      existingUser = sessionUser.user as DatabaseUserAttributes;
+    }
+  } else {
+    const response = await c.get("db").query.users.findFirst({
+      where: (u, { eq }) => eq(u.email, payload.email),
+    });
+    if (response) {
+      existingUser = response;
+    }
+  }
   if (existingUser?.emailVerified && payload.email_verified && !existingAccount) {
     await c.get("db").insert(oauthAccountTable).values({
       providerUserId: payload.sub.toString(),

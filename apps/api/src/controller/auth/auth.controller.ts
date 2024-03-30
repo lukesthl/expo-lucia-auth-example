@@ -18,19 +18,34 @@ const AuthController = new Hono<AppContext>()
     zValidator(
       "query",
       z
-        .object({ redirect: z.enum(["com.expoluciaauth.app://", "http://localhost:8081"]) })
+        .object({
+          redirect: z.enum(["com.expoluciaauth.app://", "http://localhost:8081"]),
+          sessionToken: z.string().optional(),
+        })
         .default({ redirect: "http://localhost:8081" })
     ),
     async (c) => {
       const provider = c.req.valid("param").provider;
       const redirect = c.req.valid("query").redirect;
+      const sessionToken = c.req.valid("query").sessionToken;
       setCookie(c, "redirect", redirect, {
         httpOnly: true,
         maxAge: 60 * 10,
         path: "/",
         secure: c.env.WORKER_ENV === "production",
       });
-
+      if (sessionToken) {
+        const session = await c.get("lucia").validateSession(sessionToken);
+        if (session.user) {
+          // for account linking
+          setCookie(c, "sessionToken", sessionToken, {
+            httpOnly: true,
+            maxAge: 60 * 10, // 10 minutes
+            path: "/",
+            secure: c.env.WORKER_ENV === "production",
+          });
+        }
+      }
       const state = generateState();
       if (provider === "github") {
         const url = await getGithubAuthorizationUrl({ c, state });
@@ -78,6 +93,7 @@ const AuthController = new Hono<AppContext>()
       const provider = c.req.valid("param").provider;
       let stateCookie = getCookie(c, `${provider}_oauth_state`);
       const codeVerifierCookie = getCookie(c, `${provider}_oauth_code_verifier`);
+      const sessionTokenCookie = getCookie(c, "sessionToken");
       let redirect = getCookie(c, "redirect");
 
       const url = new URL(c.req.url);
@@ -99,11 +115,10 @@ const AuthController = new Hono<AppContext>()
         !redirect ||
         (codeVerifierRequired && !codeVerifierCookie)
       ) {
-        console.log({ state, stateCookie, code, redirect, codeVerifierCookie });
         return c.json({ error: "Invalid request" }, 400);
       }
       if (provider === "github") {
-        const session = await createGithubSession({ c, idToken: code });
+        const session = await createGithubSession({ c, idToken: code, sessionToken: sessionTokenCookie });
         if (!session) {
           return c.json({}, 400);
         }
@@ -111,7 +126,12 @@ const AuthController = new Hono<AppContext>()
         redirectUrl.searchParams.append("token", session.id);
         return c.redirect(redirectUrl.toString());
       } else if (provider === "google") {
-        const session = await createGoogleSession({ c, idToken: code, codeVerifier: codeVerifierCookie! });
+        const session = await createGoogleSession({
+          c,
+          idToken: code,
+          codeVerifier: codeVerifierCookie!,
+          sessionToken: sessionTokenCookie,
+        });
         if (!session) {
           return c.json({}, 400);
         }
@@ -140,6 +160,7 @@ const AuthController = new Hono<AppContext>()
           c,
           code,
           user,
+          sessionToken: sessionTokenCookie,
         });
         if (!session) {
           return c.json({}, 400);
@@ -163,6 +184,7 @@ const AuthController = new Hono<AppContext>()
             username: z.string(),
           })
           .optional(),
+        sessionToken: z.string().optional(),
       })
     ),
     zValidator(
@@ -174,13 +196,14 @@ const AuthController = new Hono<AppContext>()
     async (c) => {
       const provider = c.req.param("provider");
       const idToken = c.req.valid("json").idToken;
+      const sessionToken = c.req.valid("json").sessionToken;
       let session: Session | null = null;
       if (provider === "github") {
-        session = await createGithubSession({ c, idToken });
+        session = await createGithubSession({ c, idToken, sessionToken });
       } else if (provider === "google") {
-        session = await createGoogleSession({ c, idToken, codeVerifier: "" });
+        session = await createGoogleSession({ c, idToken, codeVerifier: "", sessionToken });
       } else if (provider === "apple") {
-        session = await createAppleSession({ c, idToken, user: c.req.valid("json").user });
+        session = await createAppleSession({ c, idToken, user: c.req.valid("json").user, sessionToken });
       }
       if (!session) {
         return c.json({}, 400);

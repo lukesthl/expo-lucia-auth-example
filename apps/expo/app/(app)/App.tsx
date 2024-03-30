@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useColorScheme } from "react-native";
+import { Pressable, useColorScheme } from "react-native";
 import { router } from "expo-router";
 import type { InferResponseType } from "hono";
 import { Button, H3, H4, Image, Text, View, XStack, YStack } from "tamagui";
@@ -9,7 +9,7 @@ import { useAuth } from "../../lib/auth/AuthProvider";
 
 export function App() {
   const scheme = useColorScheme();
-  const { user, signOut, getOAuthAccounts } = useAuth();
+  const { user, signOut, getOAuthAccounts, signInWithOAuth } = useAuth();
   const [accounts, setAccounts] = useState<
     InferResponseType<(typeof Api.client)["user"]["oauth-accounts"]["$get"]>["accounts"]
   >([]);
@@ -61,7 +61,9 @@ export function App() {
             {accounts.some((account) => account.provider === provider.toLowerCase()) ? (
               <Text color="$green10">Connected</Text>
             ) : (
-              <Text color="$red10">Not connected</Text>
+              <Pressable onPress={() => signInWithOAuth({ provider: provider.toLowerCase() })}>
+                <Text color="$gray12">Connect now</Text>
+              </Pressable>
             )}
           </XStack>
         ))}

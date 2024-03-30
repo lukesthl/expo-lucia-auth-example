@@ -47,10 +47,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     provider: Provider;
     redirect?: string;
   }) => {
-    const result = await Browser.openAuthSessionAsync(
-      `${process.env.EXPO_PUBLIC_API_URL!}/auth/${provider}?redirect=${redirect}`,
-      redirect
-    );
+    const oauthUrl = new URL(`${process.env.EXPO_PUBLIC_API_URL!}/auth/${provider}?redirect=${redirect}`);
+    const sesionToken = await Storage.getItem("session_token");
+    if (sesionToken) {
+      oauthUrl.searchParams.append("sessionToken", sesionToken);
+    }
+    console.log(oauthUrl.toString());
+    const result = await Browser.openAuthSessionAsync(oauthUrl.toString(), redirect);
     if (result.type !== "success") {
       return null;
     }
@@ -109,6 +112,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (!response.ok) {
       return;
     }
+    setUser(null);
     await Storage.deleteItem("session_token");
   };
 
