@@ -94,87 +94,94 @@ const AuthController = new Hono<AppContext>()
     "/:provider/callback",
     zValidator("param", z.object({ provider: z.enum(["github", "google", "apple"]) })),
     async (c) => {
-      const provider = c.req.valid("param").provider;
-      let stateCookie = getCookie(c, `${provider}_oauth_state`);
-      const codeVerifierCookie = getCookie(c, `${provider}_oauth_code_verifier`);
-      const sessionTokenCookie = getCookie(c, "sessionToken");
-      let redirect = getCookie(c, "redirect");
+      try {
+        const provider = c.req.valid("param").provider;
+        let stateCookie = getCookie(c, `${provider}_oauth_state`);
+        const codeVerifierCookie = getCookie(c, `${provider}_oauth_code_verifier`);
+        const sessionTokenCookie = getCookie(c, "sessionToken");
+        let redirect = getCookie(c, "redirect");
 
-      const url = new URL(c.req.url);
-      let state = url.searchParams.get("state");
-      let code = url.searchParams.get("code");
-      const codeVerifierRequired = ["google"].includes(provider);
-      if (c.req.method === "POST") {
-        const formData = await c.req.formData();
-        state = formData.get("state");
-        stateCookie = state ?? stateCookie;
-        code = formData.get("code");
-        redirect = c.env.WEB_DOMAIN;
+        const url = new URL(c.req.url);
+        let state = url.searchParams.get("state");
+        let code = url.searchParams.get("code");
+        const codeVerifierRequired = ["google"].includes(provider);
+        if (c.req.method === "POST") {
+          const formData = await c.req.formData();
+          state = formData.get("state");
+          stateCookie = state ?? stateCookie;
+          code = formData.get("code");
+          redirect = c.env.WEB_DOMAIN;
+        }
+        if (
+          !state ||
+          !stateCookie ||
+          !code ||
+          stateCookie !== state ||
+          !redirect ||
+          (codeVerifierRequired && !codeVerifierCookie)
+        ) {
+          return c.json({ error: "Invalid request" }, 400);
+        }
+        if (provider === "github") {
+          const session = await createGithubSession({ c, idToken: code, sessionToken: sessionTokenCookie });
+          if (!session) {
+            return c.json({}, 400);
+          }
+          const redirectUrl = new URL(redirect);
+          redirectUrl.searchParams.append("token", session.id);
+          return c.redirect(redirectUrl.toString());
+        } else if (provider === "google") {
+          const session = await createGoogleSession({
+            c,
+            idToken: code,
+            codeVerifier: codeVerifierCookie!,
+            sessionToken: sessionTokenCookie,
+          });
+          if (!session) {
+            return c.json({}, 400);
+          }
+          const redirectUrl = new URL(redirect);
+          redirectUrl.searchParams.append("token", session.id);
+          return c.redirect(redirectUrl.toString());
+        } else if (provider === "apple") {
+          const originHeader = c.req.header("Origin");
+          const hostHeader = c.req.header("Host");
+          if (!originHeader || !hostHeader || !verifyRequestOrigin(originHeader, [hostHeader, "appleid.apple.com"])) {
+            return c.json({}, 403);
+          }
+          const formData = await c.req.formData();
+          const userJSON = formData.get("user"); // only available first time
+          let user: { username: string } | undefined;
+          if (userJSON) {
+            const reqUser = JSON.parse(userJSON) as {
+              name: { firstName: string; lastName: string };
+              email: string;
+            };
+            user = {
+              username: `${reqUser.name.firstName} ${reqUser.name.lastName}`,
+            };
+          }
+          const session = await createAppleSession({
+            c,
+            code,
+            user,
+            sessionToken: sessionTokenCookie,
+          });
+          if (!session) {
+            return c.json({}, 400);
+          }
+          // always web
+          const redirectUrl = new URL(redirect);
+          redirectUrl.searchParams.append("token", session.id);
+          return c.redirect(redirectUrl.toString());
+        }
+        return c.json({}, 400);
+      } catch (error) {
+        console.error(error);
+        if (error instanceof Error) {
+          console.error(error.stack);
+        }
       }
-      if (
-        !state ||
-        !stateCookie ||
-        !code ||
-        stateCookie !== state ||
-        !redirect ||
-        (codeVerifierRequired && !codeVerifierCookie)
-      ) {
-        return c.json({ error: "Invalid request" }, 400);
-      }
-      if (provider === "github") {
-        const session = await createGithubSession({ c, idToken: code, sessionToken: sessionTokenCookie });
-        if (!session) {
-          return c.json({}, 400);
-        }
-        const redirectUrl = new URL(redirect);
-        redirectUrl.searchParams.append("token", session.id);
-        return c.redirect(redirectUrl.toString());
-      } else if (provider === "google") {
-        const session = await createGoogleSession({
-          c,
-          idToken: code,
-          codeVerifier: codeVerifierCookie!,
-          sessionToken: sessionTokenCookie,
-        });
-        if (!session) {
-          return c.json({}, 400);
-        }
-        const redirectUrl = new URL(redirect);
-        redirectUrl.searchParams.append("token", session.id);
-        return c.redirect(redirectUrl.toString());
-      } else if (provider === "apple") {
-        const originHeader = c.req.header("Origin");
-        const hostHeader = c.req.header("Host");
-        if (!originHeader || !hostHeader || !verifyRequestOrigin(originHeader, [hostHeader, "appleid.apple.com"])) {
-          return c.json({}, 403);
-        }
-        const formData = await c.req.formData();
-        const userJSON = formData.get("user"); // only available first time
-        let user: { username: string } | undefined;
-        if (userJSON) {
-          const reqUser = JSON.parse(userJSON) as {
-            name: { firstName: string; lastName: string };
-            email: string;
-          };
-          user = {
-            username: `${reqUser.name.firstName} ${reqUser.name.lastName}`,
-          };
-        }
-        const session = await createAppleSession({
-          c,
-          code,
-          user,
-          sessionToken: sessionTokenCookie,
-        });
-        if (!session) {
-          return c.json({}, 400);
-        }
-        // always web
-        const redirectUrl = new URL(redirect);
-        redirectUrl.searchParams.append("token", session.id);
-        return c.redirect(redirectUrl.toString());
-      }
-      return c.json({}, 400);
     }
   )
   .post(

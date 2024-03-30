@@ -7,7 +7,7 @@
     "deploy": "wrangler deploy --minify src/index.ts",
     "db:generate": "drizzle-kit generate:sqlite",
     "db:migrate": "wrangler d1 migrations apply demo --local",
-    "db:migrate:prod": "wrangler d1 migrations apply demo",
+    "db:migrate:prod": "wrangler d1 migrations apply demo --remote",
     "db:studio": "drizzle-kit studio",
     "db:studio:local": "cross-env LOCAL_DB_PATH=$(find .wrangler/state/v3/d1/miniflare-D1DatabaseObject -type f -name '*.sqlite' -print -quit) drizzle-kit studio"
   },
