@@ -19,3 +19,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: './apps/api'
           packageManager: bun
+          command: deploy ./src/index.ts
