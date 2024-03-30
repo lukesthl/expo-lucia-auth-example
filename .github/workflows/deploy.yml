@@ -19,7 +19,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: './apps/api'
           packageManager: bun
-          command: deploy ./src/index.ts --project-name=expo-lucia-auth-example
+          command: deploy ./src/index.ts --name=expo-lucia-auth-example
       - run: bun run --cwd ./apps/expo build:web
       - name: Deploy Pages
         uses: cloudflare/wrangler-action@v3
@@ -27,4 +27,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: './apps/expo'
           packageManager: bun
-          command: pages deploy ./dist --project-name=expo-lucia-auth-example
+          command: pages deploy ./dist --name=expo-lucia-auth-example
