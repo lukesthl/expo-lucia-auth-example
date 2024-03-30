@@ -19,7 +19,11 @@ const AuthController = new Hono<AppContext>()
       "query",
       z
         .object({
-          redirect: z.enum(["com.expoluciaauth.app://", "http://localhost:8081"]),
+          redirect: z.enum([
+            "com.expoluciaauth.app://",
+            "http://localhost:8081",
+            "https://expo-lucia-auth-example-web.pages.dev",
+          ]),
           sessionToken: z.string().optional(),
         })
         .default({ redirect: "http://localhost:8081" })
