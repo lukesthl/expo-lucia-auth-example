@@ -27,4 +27,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: './apps/expo'
           packageManager: bun
-          command: pages deploy ./dist --name=expo-lucia-auth-example
+          command: pages deploy ./dist --project-name=expo-lucia-auth-example
