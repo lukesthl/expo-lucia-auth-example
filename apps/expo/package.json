@@ -10,6 +10,7 @@
     "android": "npx expo run:android",
     "ios": "npx expo run:ios",
     "dev:client": "npx expo start --clear --dev-client",
+    "build:web": "npx expo export --platform web",
     "eject": "npx expo eject"
   },
   "dependencies": {

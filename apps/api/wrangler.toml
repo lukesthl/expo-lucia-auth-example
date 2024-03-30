@@ -2,7 +2,7 @@ name = "api"
 compatibility_date = "2023-12-04"
 
 [vars]
-WORKER_ENV = "dev"
+WORKER_ENV = "development"
 
 # [[kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"
