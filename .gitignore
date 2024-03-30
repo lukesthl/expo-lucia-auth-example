@@ -18,6 +18,7 @@ dist
 # tamagui
 **/.tamagui/*
 
+!**/.tamagui/css/
 # production
 /build
 
