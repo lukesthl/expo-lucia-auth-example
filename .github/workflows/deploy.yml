@@ -23,6 +23,11 @@ jobs:
       - run: bun run --cwd ./apps/expo build:web
       - name: Deploy Pages
         uses: cloudflare/wrangler-action@v3
+        env:
+          EXPO_PUBLIC_GITHUB_CLIENT_ID: ${{ vars.EXPO_PUBLIC_GITHUB_CLIENT_ID }}
+          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+          EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: ${{ vars.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID }}
+          EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${{ vars.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID }}
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
