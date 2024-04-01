@@ -7,7 +7,11 @@ export default function AppLayout() {
   const { loading, user } = useAuth();
 
   if (loading) {
-    return <Text>Loading...</Text>;
+    return (
+      <>
+        <Text>Loading...</Text> <Stack.Screen options={{ headerShown: false }} />
+      </>
+    );
   }
 
   if (!user) {
