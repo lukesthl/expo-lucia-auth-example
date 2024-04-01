@@ -12,4 +12,7 @@ migrations_dir = "./src/database/migrations"
 
 [env.production]
 vars = { ENVIRONMENT = "production" }
+d1_databases = [
+  { binding = "DB", database_name = "demo", database_id = "b016f510-a7f5-4596-a596-836314b25841" }
+]
 
