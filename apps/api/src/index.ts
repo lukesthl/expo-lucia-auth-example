@@ -27,4 +27,7 @@ app
 const routes = app.route("/auth", AuthController).route("/user", UserController);
 
 export type AppType = typeof routes;
-export default app;
+export default {
+  port: 3000,
+  fetch: app.fetch,
+};

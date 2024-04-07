@@ -1,5 +1,6 @@
-import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { drizzle } from "drizzle-orm/d1";
+import { Database as BunDatabase } from "bun:sqlite";
+import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
+import { drizzle } from "drizzle-orm/bun-sqlite";
 import type { Context } from "hono";
 
 import type { AppContext } from "../context";
@@ -8,10 +9,11 @@ import * as schema from "./schema";
 export const initalizeDB = (c: Context<AppContext>) => {
   let db = c.get("db");
   if (!db) {
-    db = drizzle(c.env.DB, { schema });
+    const sqlite = new BunDatabase("sqlite.db");
+    db = drizzle(sqlite, { schema });
     c.set("db", db);
   }
   return db;
 };
 
-export type Database = DrizzleD1Database<typeof schema>;
+export type Database = BunSQLiteDatabase<typeof schema>;

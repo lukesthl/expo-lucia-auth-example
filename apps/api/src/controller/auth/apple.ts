@@ -61,7 +61,7 @@ export const createAppleSession = async ({
   >(idToken);
 
   const applePublicKey = await fetch("https://appleid.apple.com/auth/keys");
-  const applePublicKeyJson = (await applePublicKey.json()) as { keys: (JsonWebKey & { kid: string })[] };
+  const applePublicKeyJson = await applePublicKey.json();
   const publicKey = applePublicKeyJson.keys.find((key) => key.kid === header?.kid);
   if (!publicKey) {
     return null;

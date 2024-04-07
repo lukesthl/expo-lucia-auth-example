@@ -43,13 +43,7 @@ export const createGoogleSession = async ({
       Authorization: `Bearer ${tokens.accessToken}`,
     },
   });
-  const user = (await response.json()) as {
-    sub: string;
-    name: string;
-    email: string;
-    email_verified: boolean;
-    picture: string;
-  };
+  const user = (await response.json());
   const existingAccount = await c.get("db").query.oauthAccounts.findFirst({
     where: (account, { eq }) => eq(account.providerUserId, user.sub.toString()),
   });

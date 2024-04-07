@@ -32,12 +32,7 @@ export const createGithubSession = async ({
     },
   });
 
-  const githubUserResult = (await githubUserResponse.json()) as {
-    id: number;
-    login: string; // username
-    name: string;
-    avatar_url: string;
-  };
+  const githubUserResult = (await githubUserResponse.json());
 
   const userEmailResponse = await fetch("https://api.github.com/user/emails", {
     headers: {
@@ -46,11 +41,7 @@ export const createGithubSession = async ({
     },
   });
 
-  const userEmailResult = (await userEmailResponse.json()) as {
-    email: string;
-    primary: boolean;
-    verified: boolean;
-  }[];
+  const userEmailResult = (await userEmailResponse.json());
 
   const primaryEmail = userEmailResult.find((email) => email.primary);
   if (!primaryEmail) {

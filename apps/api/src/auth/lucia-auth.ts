@@ -1,5 +1,5 @@
 import { DrizzleSQLiteAdapter } from "@lucia-auth/adapter-drizzle";
-import { InferInsertModel, InferModelFromColumns } from "drizzle-orm";
+import type { InferInsertModel } from "drizzle-orm";
 import type { Context } from "hono";
 import { Lucia } from "lucia";
 

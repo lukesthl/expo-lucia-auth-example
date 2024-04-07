@@ -14,10 +14,9 @@ export default defineConfig(
     : ({
         schema: "./src/database/schema.ts",
         out: "./src/database/migrations",
-        driver: "d1",
+        driver: "better-sqlite",
         dbCredentials: {
-          wranglerConfigPath: __dirname + "/wrangler.toml",
-          dbName: "demo",
+          url: "sqlite.db",
         },
       } satisfies Config)
 );
