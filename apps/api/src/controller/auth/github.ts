@@ -1,5 +1,6 @@
 import { GitHub } from "arctic";
 import type { Context } from "hono";
+import { env } from "hono/adapter";
 import { generateId } from "lucia";
 
 import type { DatabaseUserAttributes } from "../../auth/lucia-auth";
@@ -7,7 +8,7 @@ import type { AppContext } from "../../context";
 import { oauthAccountTable } from "../../database/oauth.accounts";
 import { userTable } from "../../database/users";
 
-const githubClient = (c: Context<AppContext>) => new GitHub(c.env.GITHUB_CLIENT_ID, c.env.GITHUB_CLIENT_SECRET);
+const githubClient = (c: Context<AppContext>) => new GitHub(env(c).GITHUB_CLIENT_ID, env(c).GITHUB_CLIENT_SECRET);
 
 export const getGithubAuthorizationUrl = async ({ c, state }: { c: Context<AppContext>; state: string }) => {
   const github = githubClient(c);
@@ -32,7 +33,7 @@ export const createGithubSession = async ({
     },
   });
 
-  const githubUserResult = (await githubUserResponse.json());
+  const githubUserResult = await githubUserResponse.json();
 
   const userEmailResponse = await fetch("https://api.github.com/user/emails", {
     headers: {
@@ -41,7 +42,7 @@ export const createGithubSession = async ({
     },
   });
 
-  const userEmailResult = (await userEmailResponse.json());
+  const userEmailResult = await userEmailResponse.json();
 
   const primaryEmail = userEmailResult.find((email) => email.primary);
   if (!primaryEmail) {

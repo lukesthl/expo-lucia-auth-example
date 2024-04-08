@@ -16,7 +16,7 @@ export default defineConfig(
         out: "./src/database/migrations",
         driver: "better-sqlite",
         dbCredentials: {
-          url: "sqlite.db",
+          url: "./db/sqlite.db",
         },
       } satisfies Config)
 );

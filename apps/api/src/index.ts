@@ -9,13 +9,12 @@ import type { AppContext } from "./context";
 import { AuthController } from "./controller/auth/auth.controller";
 import { UserController } from "./controller/user/user.controller";
 import { initalizeDB } from "./database/db";
-import { Env } from "./env";
 
 const app = new Hono<AppContext>();
 app
   .use(logger())
   .use((c, next) => {
-    const handler = cors({ origin: env<Env>(c).WEB_DOMAIN });
+    const handler = cors({ origin: env(c).WEB_DOMAIN });
     return handler(c, next);
   })
   .use((c, next) => {

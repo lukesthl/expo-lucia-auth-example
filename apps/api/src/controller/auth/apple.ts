@@ -1,6 +1,7 @@
 import jwt from "@tsndr/cloudflare-worker-jwt";
 import { Apple } from "arctic";
 import type { Context } from "hono";
+import { env } from "hono/adapter";
 import { generateId } from "lucia";
 
 import type { DatabaseUserAttributes } from "../../auth/lucia-auth";
@@ -11,12 +12,12 @@ import { userTable } from "../../database/users";
 const appleClient = (c: Context<AppContext>) =>
   new Apple(
     {
-      clientId: c.env.APPLE_WEB_CLIENT_ID,
-      teamId: c.env.APPLE_TEAM_ID,
-      keyId: c.env.APPLE_KEY_ID,
-      certificate: c.env.APPLE_PRIVATE_KEY,
+      clientId: env(c).APPLE_WEB_CLIENT_ID,
+      teamId: env(c).APPLE_TEAM_ID,
+      keyId: env(c).APPLE_KEY_ID,
+      certificate: env(c).APPLE_PRIVATE_KEY,
     },
-    `${c.env.API_DOMAIN}/auth/apple/callback`
+    `${env(c).API_DOMAIN}/auth/apple/callback`
   );
 
 export const getAppleAuthorizationUrl = async ({ c, state }: { c: Context<AppContext>; state: string }) => {
@@ -72,7 +73,7 @@ export const createAppleSession = async ({
     !isValid ||
     !payload ||
     payload.iss !== "https://appleid.apple.com" ||
-    !(payload?.aud === c.env.APPLE_CLIENT_ID || payload.aud === c.env.APPLE_WEB_CLIENT_ID) ||
+    !(payload?.aud === env(c).APPLE_CLIENT_ID || payload.aud === env(c).APPLE_WEB_CLIENT_ID) ||
     !payload.exp ||
     payload?.exp < Date.now() / 1000
   ) {

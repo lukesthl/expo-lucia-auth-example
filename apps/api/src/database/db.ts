@@ -9,7 +9,7 @@ import * as schema from "./schema";
 export const initalizeDB = (c: Context<AppContext>) => {
   let db = c.get("db");
   if (!db) {
-    const sqlite = new BunDatabase("sqlite.db");
+    const sqlite = new BunDatabase("./db/sqlite.db");
     db = drizzle(sqlite, { schema });
     c.set("db", db);
   }

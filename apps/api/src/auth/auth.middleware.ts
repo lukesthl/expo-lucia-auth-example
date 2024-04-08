@@ -1,4 +1,5 @@
 import type { Context } from "hono";
+import { env } from "hono/adapter";
 import type { User } from "lucia";
 import { verifyRequestOrigin } from "lucia";
 
@@ -15,7 +16,7 @@ export const AuthMiddleware = async (c: Context<AppContext>, next: () => Promise
   const hostHeader = c.req.header("Host") ?? c.req.header("X-Forwarded-Host");
   if (
     (!originHeader || !hostHeader || !verifyRequestOrigin(originHeader, [hostHeader])) &&
-    c.env.WORKER_ENV === "production"
+    env(c).WORKER_ENV === "production"
   ) {
     return new Response(null, {
       status: 403,
