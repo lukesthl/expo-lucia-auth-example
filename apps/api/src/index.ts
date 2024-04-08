@@ -12,7 +12,6 @@ import { initalizeDB } from "./database/db";
 import { Env } from "./env";
 
 const app = new Hono<AppContext>();
-console.log(process.env.WEB_DOMAIN);
 app
   .use(logger())
   .use((c, next) => {
@@ -30,6 +29,6 @@ const routes = app.route("/auth", AuthController).route("/user", UserController)
 
 export type AppType = typeof routes;
 export default {
-  port: 3000,
+  port: process.env.PORT ?? 3000,
   fetch: app.fetch,
 };
