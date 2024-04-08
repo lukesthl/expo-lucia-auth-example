@@ -16,7 +16,8 @@
     "check-deps": "check-dependency-version-consistency .",
     "lint": "turbo lint",
     "format": "turbo format",
-    "build": "turbo build"
+    "build": "turbo build",
+    "build:web": "bun run --cwd apps/expo build:web"
   },
   "resolutions": {
     "react": "^18.2.0",
