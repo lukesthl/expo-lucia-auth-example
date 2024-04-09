@@ -1,5 +1,4 @@
 import { Database as BunDatabase } from "bun:sqlite";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import type { Context } from "hono";
@@ -13,12 +12,6 @@ export const initalizeDB = (c: Context<AppContext>) => {
     const sqlite = new BunDatabase("/db/sqlite.db");
     db = drizzle(sqlite, { schema });
     c.set("db", db);
-    try {
-      migrate(db, { migrationsFolder: "./apps/api/src/database/migrations" });
-      console.log("Database migrated");
-    } catch (error) {
-      console.error("Error migrating database", error);
-    }
   }
   return db;
 };
