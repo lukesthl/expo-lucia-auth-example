@@ -22,14 +22,12 @@ app
     initializeLucia(c);
     return next();
   })
-  .use(AuthMiddleware);
-
-const routes = app
-  .route("/auth", AuthController)
-  .route("/user", UserController)
   .get("/health", (c) => {
     return c.json({ status: "ok" });
-  });
+  })
+  .use(AuthMiddleware);
+
+const routes = app.route("/auth", AuthController).route("/user", UserController);
 
 export type AppType = typeof routes;
 export default {
