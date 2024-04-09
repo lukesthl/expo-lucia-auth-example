@@ -24,6 +24,7 @@ const AuthController = new Hono<AppContext>()
             "com.expoluciaauth.app://",
             "http://localhost:8081",
             "https://expo-lucia-auth-example-web.pages.dev",
+            "https://expo-web.up.railway.app",
           ]),
           sessionToken: z.string().optional(),
         })
