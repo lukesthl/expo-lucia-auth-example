@@ -13,7 +13,8 @@ export const initalizeDB = (c: Context<AppContext>) => {
     const sqlite = new BunDatabase("/db/sqlite.db");
     db = drizzle(sqlite, { schema });
     c.set("db", db);
-    void migrate(db, { migrationsFolder: "./database/migrations" })
+    console.log("Database initialized");
+    void migrate(db, { migrationsFolder: "./apps/api/src/database/migrations" })
       .then(() => console.log("Migrated"))
       .catch((e) => console.error(e));
   }
