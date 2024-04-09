@@ -8,7 +8,7 @@
   "scripts": {
     "native": "bun run --cwd apps/expo dev:client",
     "start": "bun run --cwd apps/expo start",
-    "api": "bun run  --cwd apps/api dev",
+    "api": "bun run ./apps/api/src/index.ts",
     "watch": "yarn workspaces foreach -pi run watch",
     "fix": "manypkg fix",
     "upgrade:tamagui": "yarn up '*tamagui*'@latest '@tamagui/*'@latest react-native-web-lite@latest",
