@@ -1,7 +1,6 @@
 import type { Config } from "drizzle-kit";
 import { defineConfig } from "drizzle-kit";
 
-console.log(process.env.LOCAL_DB_PATH);
 export default defineConfig(
   process.env.LOCAL_DB_PATH
     ? ({
