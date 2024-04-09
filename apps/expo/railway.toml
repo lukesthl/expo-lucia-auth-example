@@ -1,0 +1,2 @@
+[build]
+nixpacksConfigPath = "nixpacks.toml"
