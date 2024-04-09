@@ -15,7 +15,7 @@ export const AuthMiddleware = async (c: Context<AppContext>, next: () => Promise
   const originHeader = c.req.header("Origin") ?? c.req.header("origin");
   const hostHeader = c.req.header("Host") ?? c.req.header("X-Forwarded-Host");
   if (
-    (!originHeader || !hostHeader || !verifyRequestOrigin(originHeader, [hostHeader])) &&
+    (!originHeader || !hostHeader || !verifyRequestOrigin(originHeader, [hostHeader, env(c).API_DOMAIN])) &&
     env(c).WORKER_ENV === "production"
   ) {
     return new Response(null, {
