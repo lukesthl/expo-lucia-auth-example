@@ -18,10 +18,10 @@
 # format the Caddyfile with fmt
 [phases.fmt]
     dependsOn = ['caddy'] # make sure this phase runs after the 'caddy' phase so that we know we have caddy downloaded
-    cmds = ['caddy fmt --overwrite Caddyfile'] # format the Caddyfile to fix any formatting inconsistencies
+    cmds = ['caddy fmt --overwrite ./apps/expo/Caddyfile'] # format the Caddyfile to fix any formatting inconsistencies
 
 # copy caddy and build artifacts to a new image and start the caddy web server
 [start]
     runImage = 'ubuntu:20.04' # use a new ubuntu image to run the caddy server in
-    onlyIncludeFiles = ['caddy', 'Caddyfile', 'dist'] # copy only the needed files and folders into the new image (Vite builds to a 'dist' folder)
-    cmd = './caddy run --config Caddyfile --adapter caddyfile 2>&1' # start caddy using the Caddyfile config and caddyfile adapter
+    onlyIncludeFiles = ['caddy', './apps/expo/Caddyfile', './apps/expo/dist'] # copy only the needed files and folders into the new image (Vite builds to a 'dist' folder)
+    cmd = './caddy run --config ./apps/expo/Caddyfile --adapter caddyfile 2>&1' # start caddy using the Caddyfile config and caddyfile adapter
