@@ -14,6 +14,7 @@ export const AuthMiddleware = async (c: Context<AppContext>, next: () => Promise
 
   const originHeader = c.req.header("Origin");
   const hostHeader = c.req.header("Host") ?? c.req.header("X-Forwarded-Host");
+  console.log("c.req.header", c.req.header());
   console.log("originHeader", originHeader);
   console.log("hostHeader", hostHeader);
   console.log(env(c).WORKER_ENV);
