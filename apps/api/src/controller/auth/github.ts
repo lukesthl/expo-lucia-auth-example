@@ -11,7 +11,9 @@ const githubClient = (c: Context<AppContext>) => new GitHub(c.env.GITHUB_CLIENT_
 
 export const getGithubAuthorizationUrl = async ({ c, state }: { c: Context<AppContext>; state: string }) => {
   const github = githubClient(c);
-  return await github.createAuthorizationURL(state);
+  return await github.createAuthorizationURL(state, {
+    scopes: ["read:user", "user:email"],
+  });
 };
 
 export const createGithubSession = async ({
