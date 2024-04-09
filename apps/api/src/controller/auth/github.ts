@@ -26,6 +26,7 @@ export const createGithubSession = async ({
 }) => {
   const github = githubClient(c);
   const tokens = await github.validateAuthorizationCode(idToken);
+  console.log(tokens);
   const githubUserResponse = await fetch("https://api.github.com/user", {
     headers: {
       "User-Agent": "hono",
@@ -41,7 +42,8 @@ export const createGithubSession = async ({
       Authorization: `Bearer ${tokens.accessToken}`,
     },
   });
-
+  console.log(userEmailResponse);
+  console.log(githubUserResult);
   const userEmailResult = await userEmailResponse.json();
 
   const primaryEmail = userEmailResult.find((email) => email.primary);

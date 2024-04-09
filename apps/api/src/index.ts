@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Context, Hono } from "hono";
 import { env } from "hono/adapter";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -24,7 +24,12 @@ app
   })
   .use(AuthMiddleware);
 
-const routes = app.route("/auth", AuthController).route("/user", UserController);
+const routes = app
+  .route("/auth", AuthController)
+  .route("/user", UserController)
+  .get("/health", (c) => {
+    return c.json({ status: "ok" });
+  });
 
 export type AppType = typeof routes;
 export default {
