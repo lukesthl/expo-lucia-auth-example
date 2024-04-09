@@ -1,2 +1,2 @@
 [build]
-nixpacksConfigPath = "nixpacks.toml"
+nixpacksConfigPath = "./apps/expo/nixpacks.toml"
