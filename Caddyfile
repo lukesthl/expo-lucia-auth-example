@@ -24,7 +24,7 @@
 	respond /health 200
 
 	# serve from the 'dist' folder (Vite builds into the 'dist' folder)
-	root * /apps/expo/dist
+	root * ./apps/expo/dist
 
 	# enable gzipping responses
 	encode gzip
