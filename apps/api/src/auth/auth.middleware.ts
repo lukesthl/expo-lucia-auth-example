@@ -34,7 +34,7 @@ export const AuthMiddleware = async (c: Context<AppContext>, next: () => Promise
   if (!session) {
     return new Response("Unauthorized", { status: 401 });
   }
-  if (session && session.fresh) {
+  if (session?.fresh) {
     const sessionCookie = lucia.createSessionCookie(session.id);
     c.header("Set-Cookie", sessionCookie.serialize());
   }

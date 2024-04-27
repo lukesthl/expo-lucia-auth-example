@@ -8,11 +8,7 @@
   "scripts": {
     "native": "bun run --cwd apps/expo dev:client",
     "start": "bun run --cwd apps/expo start",
-    "api": "wrangler dev ./apps/api/src/index.ts",
-    "watch": "yarn workspaces foreach -pi run watch",
-    "fix": "manypkg fix",
-    "upgrade:tamagui": "yarn up '*tamagui*'@latest '@tamagui/*'@latest react-native-web-lite@latest",
-    "upgrade:tamagui:canary": "yarn up '*tamagui*'@canary '@tamagui/*'@canary react-native-web-lite@canary",
+    "api": "bun run --cwd ./apps/api dev",
     "check-deps": "check-dependency-version-consistency .",
     "lint": "turbo lint",
     "format": "turbo format",
@@ -21,19 +17,17 @@
   "resolutions": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-refresh": "^0.14.0",
-    "react-native-svg": "14.1.0",
-    "react-native-web": "~0.19.10"
+    "react-refresh": "^0.14.0"
+  },
+  "devDependencies": {
+    "check-dependency-version-consistency": "^4.1.0"
   },
   "dependencies": {
-    "@babel/runtime": "^7.24.1",
-    "@manypkg/cli": "^0.21.3",
+    "@babel/runtime": "^7.24.4",
     "ajv": "^8.12.0",
-    "check-dependency-version-consistency": "^4.1.0",
-    "eslint": "^8.57.0",
-    "node-gyp": "^10.0.1",
+    "node-gyp": "^10.1.0",
     "prettier": "^3.2.5",
-    "turbo": "^1.13.0",
-    "typescript": "^5.4.3"
+    "turbo": "^1.13.3",
+    "typescript": "^5.4.5"
   }
 }

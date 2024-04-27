@@ -9,11 +9,11 @@ export default function AppLayout() {
   if (loading) {
     return (
       <>
-        <Text>Loading...</Text> <Stack.Screen options={{ headerShown: false }} />
+        <Text>Loading...</Text>
+        <Stack.Screen options={{ headerShown: false }} />
       </>
     );
   }
-
   if (!user) {
     return <Redirect href="/auth/sign-in" />;
   }
