@@ -1,6 +1,7 @@
 import { DrizzleSQLiteAdapter } from "@lucia-auth/adapter-drizzle";
-import { InferInsertModel, InferModelFromColumns } from "drizzle-orm";
+import type { InferInsertModel } from "drizzle-orm";
 import type { Context } from "hono";
+import { env } from "hono/adapter";
 import { Lucia } from "lucia";
 
 import type { AppContext } from "../context";
@@ -17,7 +18,7 @@ export const initializeLucia = (c: Context<AppContext>) => {
   lucia = new Lucia(adapter, {
     sessionCookie: {
       attributes: {
-        secure: c.env.WORKER_ENV !== "development",
+        secure: env(c).WORKER_ENV !== "development",
       },
     },
     getUserAttributes: (attributes) => {

@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { generateCodeVerifier, generateState } from "arctic";
 import { Hono } from "hono";
+import { env } from "hono/adapter";
 import { getCookie, setCookie } from "hono/cookie";
 import { verifyRequestOrigin } from "lucia";
 import type { Session } from "lucia";
@@ -36,7 +37,7 @@ const AuthController = new Hono<AppContext>()
         httpOnly: true,
         maxAge: 60 * 10,
         path: "/",
-        secure: c.env.WORKER_ENV === "production",
+        secure: env(c).WORKER_ENV === "production",
       });
       if (sessionToken) {
         const session = await c.get("lucia").validateSession(sessionToken);
@@ -46,7 +47,7 @@ const AuthController = new Hono<AppContext>()
             httpOnly: true,
             maxAge: 60 * 10, // 10 minutes
             path: "/",
-            secure: c.env.WORKER_ENV === "production",
+            secure: env(c).WORKER_ENV === "production",
           });
         }
       }
@@ -57,7 +58,7 @@ const AuthController = new Hono<AppContext>()
           httpOnly: true,
           maxAge: 60 * 10,
           path: "/",
-          secure: c.env.WORKER_ENV === "production",
+          secure: env(c).WORKER_ENV === "production",
         });
         return c.redirect(url.toString());
       } else if (provider === "google") {
@@ -67,13 +68,13 @@ const AuthController = new Hono<AppContext>()
           httpOnly: true,
           maxAge: 60 * 10,
           path: "/",
-          secure: c.env.WORKER_ENV === "production",
+          secure: env(c).WORKER_ENV === "production",
         });
         setCookie(c, "google_oauth_code_verifier", codeVerifier, {
           httpOnly: true,
           maxAge: 60 * 10,
           path: "/",
-          secure: c.env.WORKER_ENV === "production",
+          secure: env(c).WORKER_ENV === "production",
         });
         return c.redirect(url.toString());
       } else if (provider === "apple") {
@@ -82,7 +83,7 @@ const AuthController = new Hono<AppContext>()
           httpOnly: true,
           maxAge: 60 * 10,
           path: "/",
-          secure: c.env.WORKER_ENV === "production",
+          secure: env(c).WORKER_ENV === "production",
           sameSite: "None",
         });
         return c.redirect(url.toString());
@@ -110,7 +111,7 @@ const AuthController = new Hono<AppContext>()
           state = formData.get("state");
           stateCookie = state ?? stateCookie;
           code = formData.get("code");
-          redirect = c.env.WEB_DOMAIN;
+          redirect = env(c).WEB_DOMAIN;
         }
         if (
           !state ||

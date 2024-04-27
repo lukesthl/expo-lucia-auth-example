@@ -1,4 +1,5 @@
 import type { Context } from "hono";
+import { env } from "hono/adapter";
 import type { User } from "lucia";
 import { verifyRequestOrigin } from "lucia";
 
@@ -11,11 +12,12 @@ export const AuthMiddleware = async (c: Context<AppContext>, next: () => Promise
   }
   const lucia = c.get("lucia");
 
-  const originHeader = c.req.header("Origin");
+  const originHeader = c.req.header("Origin") ?? c.req.header("origin");
   const hostHeader = c.req.header("Host") ?? c.req.header("X-Forwarded-Host");
   if (
-    (!originHeader || !hostHeader || !verifyRequestOrigin(originHeader, [hostHeader])) &&
-    c.env.WORKER_ENV === "production"
+    (!originHeader || !hostHeader || !verifyRequestOrigin(originHeader, [hostHeader, env(c).WEB_DOMAIN])) &&
+    env(c).WORKER_ENV === "production" &&
+    c.req.method !== "GET"
   ) {
     return new Response(null, {
       status: 403,

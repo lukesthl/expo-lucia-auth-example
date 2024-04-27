@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { env } from "hono/adapter";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
@@ -14,13 +15,16 @@ const app = new Hono<AppContext>();
 app
   .use(logger())
   .use((c, next) => {
-    const handler = cors({ origin: c.env.WEB_DOMAIN });
+    const handler = cors({ origin: env(c).WEB_DOMAIN });
     return handler(c, next);
   })
   .use((c, next) => {
     initalizeDB(c);
     initializeLucia(c);
     return next();
+  })
+  .get("/health", (c) => {
+    return c.json({ status: "ok" });
   })
   .use(AuthMiddleware);
 

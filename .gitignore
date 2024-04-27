@@ -47,3 +47,5 @@ thumbs.db
 
 # turbo build log
 **/.turbo/*
+
+.env

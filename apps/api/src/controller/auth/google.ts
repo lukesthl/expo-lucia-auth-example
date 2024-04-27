@@ -1,5 +1,6 @@
 import { Google } from "arctic";
 import type { Context } from "hono";
+import { env } from "hono/adapter";
 import { generateId } from "lucia";
 
 import type { DatabaseUserAttributes } from "../../auth/lucia-auth";
@@ -8,7 +9,7 @@ import { oauthAccountTable } from "../../database/oauth.accounts";
 import { userTable } from "../../database/users";
 
 const googleClient = (c: Context<AppContext>) =>
-  new Google(c.env.GOOGLE_CLIENT_ID, c.env.GOOGLE_CLIENT_SECRET, `${c.env.API_DOMAIN}/auth/google/callback`);
+  new Google(env(c).GOOGLE_CLIENT_ID, env(c).GOOGLE_CLIENT_SECRET, `${env(c).API_DOMAIN}/auth/google/callback`);
 
 export const getGoogleAuthorizationUrl = async ({
   c,
@@ -43,13 +44,13 @@ export const createGoogleSession = async ({
       Authorization: `Bearer ${tokens.accessToken}`,
     },
   });
-  const user = (await response.json()) as {
+  const user: {
     sub: string;
     name: string;
     email: string;
     email_verified: boolean;
     picture: string;
-  };
+  } = await response.json();
   const existingAccount = await c.get("db").query.oauthAccounts.findFirst({
     where: (account, { eq }) => eq(account.providerUserId, user.sub.toString()),
   });
